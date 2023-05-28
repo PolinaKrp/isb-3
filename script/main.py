@@ -10,6 +10,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
+from encrypt import encrypt_data
+from decrypt import decrypt_data
 
 
 SETTINGS = {
@@ -82,106 +84,6 @@ def generate_key(encrypted_symmetric_key: str, public_key_path: str, secret_key_
         logging.error(
             f"File oppening error: {encrypted_symmetric_key} \nShutdown")
 
-
-def encrypt_data(text_file: str, secret_key_path: str, encrypted_symmetric_key_path: str,
-                 encrypted_text_file_path: str):
-    """
-        Функция шифрует текст симметричным алгоритмом Camellia из файла по указанному пути, ключ симметричного алгоритма
-        шифрования зашифрован ассиметричным алгоритмом RSA, поэтому предварительно ключ расшифровывается при помощи
-        закрытого ключа RSA. Зашифрованный текст сохраняется в файл
-        :param: text_file: Путь к файлу с текстом
-        :param: secret_key_path: Путь к закрытому ключу ассиметричного шифра
-        :param: encrypted_symmetric_key_path: Путь к зашифрованному ключу симметричного алгоритма Camellia
-        :param: encrypted_text_file_path: Путь сохранения зашифрованного текста
-        :return: None
-    """
-    try:
-        with open(encrypted_symmetric_key_path, "rb") as file:
-            encrypted_symmetric_key = file.read()
-    except FileNotFoundError:
-        logging.error(
-            f"File oppening error: {encrypted_symmetric_key_path} \nShutdown")
-    try:
-        with open(secret_key_path, 'rb') as pem_in:
-            private_bytes = pem_in.read()
-    except FileNotFoundError:
-        logging.error(
-            f"File oppening error: {secret_key_path} \nShutdown")
-    d_private_key = load_pem_private_key(private_bytes, password=None, )
-    decrypted_symmetric_key = d_private_key.decrypt(encrypted_symmetric_key,
-                                                    padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                                                                 algorithm=hashes.SHA256(), label=None))
-    try:
-        with open(text_file, "r", encoding='UTF-8') as file:
-            data = file.read()
-    except FileNotFoundError:
-        logging.error(
-            f"File oppening error: {text_file} \nShutdown")
-    pad = padding2.ANSIX923(32).padder()
-    text = bytes(data, 'UTF-8')
-    padded_text = pad.update(text) + pad.finalize()
-    iv = os.urandom(16)
-    cipher = Cipher(algorithms.Camellia(decrypted_symmetric_key), modes.CBC(iv))
-    encryptor = cipher.encryptor()
-    c_text = encryptor.update(padded_text)
-    encrypted_data = {"encrypted_text": c_text, "iv": iv}
-    try:
-        with open(encrypted_text_file_path, "wb") as file:
-            pickle.dump(encrypted_data, file)
-    except FileNotFoundError:
-        logging.error(
-            f"File oppening error: {encrypted_text_file_path} \nShutdown")
-
-
-def decrypt_data(encrypted_text_file_path: str, secret_key_path: str, encrypted_symmetric_key_path: str,
-                 decrypted_text_file_path: str):
-    """
-           Функция расшифровывает текст из указанного файла, предварительно расшифровывает ключ симметричного алгоритма,
-           который был зашифрован ассиметричным алгоритмом RSA при помощи закрытого ключа
-           :param: encrypted_text_file_path: Путь к зашифрованному тексту
-           :param: secret_key_path: Путь к закрытому ключу ассиметричного шифра
-           :param: encrypted_symmetric_key_path: Путь к зашифрованному ключу симметричного алгоритма шифрования
-           :param: decrypted_text_file_path: Путь к расшифрованному тексту
-           :return: None
-    """
-    try:
-        with open(encrypted_symmetric_key_path, "rb") as file:
-            encrypted_symmetric_key = file.read()
-    except FileNotFoundError:
-        logging.error(
-            f"File oppening error: {encrypted_symmetric_key_path} \nShutdown")
-        exit()
-    try:
-        with open(secret_key_path, 'rb') as pem_in:
-            private_bytes = pem_in.read()
-    except FileNotFoundError:
-        logging.error(
-            f"File oppening error: {secret_key_path} \nShutdown")
-        exit()
-    d_private_key = load_pem_private_key(private_bytes, password=None, )
-    decrypted_symmetric_key = d_private_key.decrypt(encrypted_symmetric_key,
-                                                    padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                                                                 algorithm=hashes.SHA256(), label=None))
-    try:
-        with open(encrypted_text_file_path, 'rb') as file:
-            encrypted_text = pickle.load(file)
-    except FileNotFoundError:
-        logging.error(
-            f"File oppening error: {encrypted_text_file_path} \nShutdown")
-    text = encrypted_text['encrypted_text']
-    iv = encrypted_text['iv']
-    cipher = Cipher(algorithms.Camellia(decrypted_symmetric_key), modes.CBC(iv))
-    decryptor = cipher.decryptor()
-    decrypted_text = decryptor.update(text) + decryptor.finalize()
-    unpadder = padding2.ANSIX923(8).unpadder()
-    unpadded_dc_data = unpadder.update(decrypted_text)
-    final_text = unpadded_dc_data.decode('UTF-8')
-    try:
-        with open(decrypted_text_file_path, 'w', encoding='UTF-8') as file:
-            file.write(final_text)
-    except FileNotFoundError:
-        logging.error(
-            f"File oppening error: {decrypted_text_file_path} \nShutdown")
 
 if __name__ == "__main__":
 
