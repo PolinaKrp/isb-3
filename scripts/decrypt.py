@@ -11,7 +11,7 @@ logger = logging.getLogger()
 logger.setLevel('INFO')
 
 
-def decrypt_asym_data(secret_key, text: bytes) -> bytes:
+def decrypt_asym_data(secret_key: bytes, text: bytes) -> bytes:
     """
     Функция расшифровывает асимметрично зашифрованный текст, с помощью закрытого ключа
     :param text: зашифрованный текст
