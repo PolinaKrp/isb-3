@@ -36,4 +36,4 @@ def generate_sym_data(len: int) -> str:
         logging.info(' Symmetric encryption key generated')
     else:
         logging.warning(' The length of the key is not in choices: {}'.format(choices))
-    return key
+        raise ValueError(f'The length of the key {len} is not allowed')
