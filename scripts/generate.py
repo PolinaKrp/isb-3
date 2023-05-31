@@ -29,11 +29,11 @@ def generate_sym_data(len: int) -> str:
     :param len: длина ключа
     :return: ключ 
     """
-    if len == 128 or len == 192 or len == 256:
-        key = os.urandom(int(len/8))
-        logging.info(
-            ' Key generated for symmetric encryption')
+    key = None
+    choices = [128, 192, 256]
+    if len in choices:
+        key = os.urandom(int(len / 8))
+        logging.info(' Symmetric encryption key generated')
     else:
-        logging.warning(
-            ' key lenght is not 128, 192, 256')
+        logging.warning(' The length of the key is not in choices: {}'.format(choices))
     return key
