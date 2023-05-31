@@ -16,10 +16,10 @@ def generate_asym_data() -> tuple:
     Функция генерирует ключи для асимметричного шифрования
     :return: закрытый ключ и открытый ключ
     """
-    keys = rsa.generate_secret_key(public_exponent=65537, key_size=2048)
+    keys = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     secret_key = keys
     public_key = keys.public_key()
-    logging.info(' Key generated for symmetric encryption')
+    logging.info(' Key generated for asymmetric encryption')
     return secret_key, public_key
 
 
@@ -32,9 +32,8 @@ def generate_sym_data(len: int) -> str:
     if len == 128 or len == 192 or len == 256:
         key = os.urandom(int(len/8))
         logging.info(
-            ' Key generated for asymmetric encryption')
+            ' Key generated for symmetric encryption')
     else:
-        logging.info(
+        logging.warning(
             ' key lenght is not 128, 192, 256')
     return key
-
