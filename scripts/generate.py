@@ -37,3 +37,4 @@ def generate_sym_data(len: int) -> str:
     else:
         logging.warning(' The length of the key is not in choices: {}'.format(choices))
         raise ValueError(f'The length of the key {len} is not allowed')
+    return key 
